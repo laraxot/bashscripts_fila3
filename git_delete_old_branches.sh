@@ -1,41 +1,25 @@
 #!/bin/sh
 
-# Ottieni il percorso assoluto dello script
-me=$(readlink -f -- "$0")
+me=$( readlink -f -- "$0";)
+git submodule foreach "$me" 
 
-# Esegui il comando su tutti i submodule
-git submodule foreach "$me"
-
-# Definisci i branch da eliminare
-branches_to_delete="
-    0.0.1
-    cs0.1.01
-    cs0.2.00
-    cs0.2.01
-    cs0.2.02
-    cs0.2.03
-    cs0.2.04
-    cs0.2.05
-    cs0.2.06
-    cs0.2.07
-    cs0.2.08
-    cs0.2.09
-    cs0.2.10
-    v0.2.06
-    v0.2.07
-    v0.2.08
-    v0.2.09
-    v0.2.10
-    v1.x
-    gh-pages
-    dependabot/github_actions/ramsey/composer-install-3
-    dependabot/npm_and_yarn/postcss-nesting-13.0.0
-"
+# Branch da mantenere
+branches_to_keep="dev master prod"
 
 # Itera su tutti i remote configurati
 for remote in $(git remote); do
-    for branch in $branches_to_delete; do
-        echo "Deleting branch '$branch' from remote '$remote'..."
-        git push "$remote" --delete "$branch"
-    done
+    echo "Checking remote: $remote"
+
+    # Ottieni la lista di tutti i branch remoti, escludendo quelli da mantenere
+    branches_to_delete=$(git branch -r | grep "remotes/$remote/" | sed "s#remotes/$remote/##" | grep -v -E "^(dev|master|prod)$")
+
+    # Cancella solo se ci sono branch da eliminare
+    if [ -n "$branches_to_delete" ]; then
+        for branch in $branches_to_delete; do
+            echo "Deleting branch '$branch' from remote '$remote'..."
+            git push "$remote" --delete "$branch"
+        done
+    else
+        echo "No branches to delete for remote '$remote'."
+    fi
 done
