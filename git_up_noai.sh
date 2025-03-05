@@ -29,6 +29,7 @@ git add --renormalize -A
 #git add -A && aicommits  || echo '---------------------------empty'
 git add -A && git commit -am "up"  || echo '---------------------------empty'
 git push origin $branch -u --progress 'origin' || git push --set-upstream origin $branch
+git rebase --continue || echo 'no rebasing'
 echo "-------- END PUSH[$where ($branch)] ----------";
 git checkout $branch --
 git branch --set-upstream-to=origin/$branch $branch
